@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { DirectYieldSource } from "@/data/yields";
 import type { RecyclingSourceRow } from "@/data/recycling";
 import { RarityBadge } from "@/components/ItemCard";
+import { cachedFetchJson } from "@/lib/clientCache";
 
 type HelperItem = {
   id: string;
@@ -18,6 +19,7 @@ type Props = {
   initialItems: HelperItem[];
   needableIds: string[]; // items that can appear as recycling outputs (component_id)
   haveableIds: string[]; // items that can appear as recycling sources (source_item_id)
+  dataVersion?: string | number | null;
 };
 
 type Mode = "need" | "have";
@@ -30,6 +32,7 @@ export function RecycleHelperClient({
   initialItems,
   needableIds,
   haveableIds,
+  dataVersion,
 }: Props) {
   const [mode, setMode] = useState<Mode>("need");
 
@@ -126,18 +129,16 @@ export function RecycleHelperClient({
 
       try {
         if (mode === "need") {
-          const res = await fetch(`/items/${selectedItemId}/sources`);
-          if (!res.ok) {
-            throw new Error(`Failed to load sources (${res.status})`);
-          }
-          const data = (await res.json()) as DirectYieldSource[];
+          const data = await cachedFetchJson<DirectYieldSource[]>(
+            `/items/${selectedItemId}/sources`,
+            { version: dataVersion ?? undefined }
+          );
           setNeedResults(data ?? []);
         } else {
-          const res = await fetch(`/items/${selectedItemId}/recycling`);
-          if (!res.ok) {
-            throw new Error(`Failed to load recycling outputs (${res.status})`);
-          }
-          const data = (await res.json()) as RecyclingSourceRow[];
+          const data = await cachedFetchJson<RecyclingSourceRow[]>(
+            `/items/${selectedItemId}/recycling`,
+            { version: dataVersion ?? undefined }
+          );
           setHaveResults(data ?? []);
         }
       } catch (e: any) {
@@ -150,7 +151,7 @@ export function RecycleHelperClient({
     };
 
     run();
-  }, [selectedItemId, mode]);
+  }, [selectedItemId, mode, dataVersion]);
 
   function handleModeChange(next: Mode) {
     setMode(next);
