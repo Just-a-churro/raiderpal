@@ -32,6 +32,6 @@ jobs:
         env:
           # Add any env vars your build needs; remove if none required
           # NEXT_PUBLIC_...: ${{ secrets.NEXT_PUBLIC_... }}
-          # SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          # SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.REPO_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.REPO_ANON_KEY }}
           NEXT_TELEMETRY_DISABLED: 1
